@@ -1,0 +1,458 @@
+/*-------------------------------------------------------------------
+
+   Program: Variable Star
+    
+   Author: Lilly Jones
+
+   Date: 2 Dec 2016
+
+   Language: C
+
+   Background: A variable star is a type of star whose brightness, as seen from Earth, varies over time.  A regular variable star's brightness varies according to a predictable pattern.   
+                                These stars can be grouped into classifications based on the pattern of their variability.  In this program, we will be using a light sensor 
+                                to simulate recording one star's light output over a period of time.  Then, we will compare that star's light output 
+                                data to data representing known classes of regular variable star light patterns, to determine if the star belongs to any of the known classes.
+
+   Description: Program opens and reads star_data.txt, which contains data of known star classes. 
+				If file doesn’t open or is empty, a message will be displayed and program will exit. 
+				Read star data into a two dimensional array. 
+				Takes 10 readings of the light sensor with a delay between them. 
+				Compare the reading data with the star data, one star at a time. 
+				For each star, determine the chi-squared value (described below), storing the results to a one dimensional array.
+				Iterate through results array, looking for the three smallest values. 
+				Use red, green, and blue LEDs (on PCduino) to indicate the quality of the matches with a series of actions (detailed below). 
+
+   Input :  file "star_data.txt" must be available (in the same folder as the program).
+
+   Output : LEDs will flash on PCduino, depending on calculated values. 
+
+   Special compilation/linking instruction: none
+
+   Usage: prog2.exe
+
+   Known bugs/missing features: 
+
+   Date          Modification 
+   ------------  -------------------------------------------------------------- 
+    12 Nov 16   started project
+    14 Nov 16   functions written, reviewed
+    18 Nov 16   main written
+    28 Nov 16	revised display_results and find_closest functions
+    29 Nov 16 	documentation written
+
+---------------------------------------------------------------------
+
+   Includes
+
+---------------------------------------------------------------------*/
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
+#include "pcduino/Arduino.h"
+
+/**********************************************************************
+
+   Function: read_data
+
+   Author: L Jones
+
+   Description: Reads file into array in groups of 10 items, not to exceed number of rows available. 
+		Returns number of rows filled.
+
+   Parameters:  [in] d      	2D array of int (star_class)
+		[in] max_rows   max number of rows in array
+                [in] rows   	number of rows read
+		*inFile   	file variable
+
+   Returns: rows 		number of rows filled 
+
+   Calls: none
+
+***********************************************************************/
+int read_file( FILE *inFile,  int star_class[][10], int max_rows )
+{
+	int num_rows = 0;
+	int i = 0;
+	int variable = 0;
+	
+	while( fscanf( infile, "%d", &variable) == 1) 
+	{
+		i = 0;
+		if( variable != 0 )
+		{
+			star_class[num_rows][0] = variable;
+			i = 1;
+			while( fscanf( infile, "%d", &star_class[num_rows][i]) == 1 && star_class[num_rows][i] != 0 )
+			{
+				i++;
+			}
+		}       
+		num_rows++;
+	}
+	
+	return(num_rows);
+} 
+
+/**********************************************************************
+
+   Function: read_sensor
+
+   Author: L Jones
+
+   Description: Reads light sensor, 500 ms pause between readings. Stores readings to 1D array.  Fills array to given size.
+
+   Parameters: [in] d  		1D array of int (star_reading)
+	       [in] num_rows	number of rows in array   
+	       [in] dist_sensor	slot number of distance sensor
+
+   Returns: none
+
+   Calls: none
+
+***********************************************************************/
+void read_sensor( int dist_sensor, int star_reading[], int num_rows ) 
+{
+		int distance;
+		delay = 500;
+		int i;
+			
+		for(i = 0; i < num_rows; i++)
+		{	
+			distance = analogRead( dist_sensor );  
+			star_reading[i] = distance; 
+			delay(500);
+		}
+}
+
+
+/**********************************************************************
+
+   Function: calc_match
+
+   Author: L Jones
+
+   Description: Computes the chi-squared value between star_reading and star_class arrays. Returns the calculated value.
+
+   Parameters:  [in] star_reading      	1D array of int
+		[in] star_class      	2D array of int
+                [in] num_rows  		number of rows in array
+
+   Returns: value
+
+   Calls: none
+
+***********************************************************************/
+int calc_match( int star_reading[], int star_class[], int num_rows ) 
+{
+   		int i = 0;
+   		int value = 0;
+			
+		for(i = 0; i < num_rows; i++)
+		{
+			value += ( pow((star_reading[i]-star_class[i]), 2) / star_class[i] ); 
+				
+		}
+   		return(value);
+}
+
+/**********************************************************************
+
+Function: compare_stars
+
+   Author: L Jones
+
+   Description: calls calc_match for the current reading and each of the individual star classification sets, storing the returned values to the results array.
+
+   Parameters:  [in] d		1D array of int (star_reading)
+		[in] d      	2D array of int (star_class)
+		[in] d		1D array of double (compare_results)
+                [in] num_rows   number of rows read      
+                
+
+   Returns: none
+
+   Calls: none
+
+***********************************************************************/
+void compare_stars ( int star_reading[], int star_class[][10], double compare_results[],  int num_rows )
+{
+		int i = 0;
+		for( i = 0; i < num_rows; i++ )
+		{
+			compare_results[i] = calc_match(star_reading, star_class, num_rows);  // error message 
+		}
+}  
+
+/**********************************************************************
+
+Function: find_closest
+
+   Author: L Jones
+
+   Description: finds the indexes of the three smallest values in the compare_results array, storing the index of the smallest 
+		at position 0, the next smallest at position 1, and the next at position 2. 
+
+   Parameters:  [in] d	1D array of double (compare_results)
+		[in] d	1D array of int (three_best_matches)
+		 
+
+   Returns: none
+
+   Calls: none
+
+***********************************************************************/
+void find_closest( double compare_results[], int three_best_matches[], num_rows ) 
+{
+		int i;
+		int num_rows = 0;
+		int value = 0;
+		int smallest_index = 0;
+						
+		int value = compare_results[0];
+			
+		//find smallest
+		
+		for(i = 0; i < num_rows; i++)
+		{
+			if(compare_results[i] < compare_results[smallest_index])
+			{
+				smallest_index = i;
+				value = compare_results[smallest_index];
+			}
+			three_best_matches[0] = smallest_index;
+		}
+			
+		//find next smallest
+		
+		if(smallest_index != 0)
+		{	
+				smallest_index = 0;
+				value = compare_results[0];
+		}
+		else
+		{
+				smallest_index = 1;
+				value = compare_results[i];
+		}
+		
+		for(i = 0; i < num_rows; i++)
+		{
+			if(compare_results[i] < compare_results[smallest_index] && i != three_best_matches[0])
+			{
+				smallest_index = i;
+				value = compare_results[smallest_index];
+			}
+			three_best_matches[1] = smallest_index;
+		}
+			
+		// find third smallest
+		if(three_best_matches[0] != 0 && three_best_matches[1] != 0)
+		{
+			smallest_index = 0;
+			value = compare_results[0];
+		}
+		else if(three_best_matches[0] != 1 && three_best_matches[1] != 1)
+		{
+			smallest_index = 1;
+			value = three_best_matches[1];
+		}
+		else
+		{
+			smallest_index = 2;
+			value = three_best_matches[2];
+		}
+		for(i = 0; i < num_rows; i++)
+		{
+			if(compare_results[i] < compare_results[smallest_index] && i != three_best_matches[0] && i != three_best_matches[1])
+			{
+				smallest_index = i;
+				value = compare_results[smallest_index];
+			}
+			three_best_matches[1] = smallest_index;	
+		}	
+}
+
+/**********************************************************************
+
+Function: display_results
+
+   Author: L Jones
+
+   Description: values for the red, green and blue LEDs, displays how close a match the value at each of the closest indexes is, as follows 
+		value < 50 – blink green on and off 3 times, with 300 msec between on/off
+		value < 200 – turn green on steady for 500 msec
+		value < 500 – turn blue on steady for 500 msec
+		higher values – no color displayed
+		pause 1 second between lights for each value
+		if none of the three values cause green or blue to be lit, turn on red for one full second
+
+
+   Parameters:  [in] d		1D array of double (compare_results)
+		[in] d		1D array of int (three_best_matches)
+		[in] red_led 	digital slot assignment for red LED
+		[in] green_led 	digital slot assignment for green LED
+		[in] blue_led 	digital slot assignment for blue LED
+
+   Returns: none
+
+   Calls: none
+
+***********************************************************************/
+void display_results( double compare_results[], int three_best_matches[], int red_led, int green_led, int blue_led  ) 
+{
+   		int i = 0;
+   		int delay = 0;
+   		int red_led = 10; //D 10, 11, 12 digital devices
+		int green_led = 11;
+		int blue_led = 12;
+		int num_rows = 0;
+		int value = 0;
+		
+		for(i = 0; i < 3; i++)
+   		{
+			if(value < 50) 
+   			{
+      				//blink green on and off 3 times, with 300 msec between on/off;
+			
+				digitalWrite( green_led, HIGH );
+				delay(300);
+				digitalWrite( green_led, LOW );
+				delay(300);
+				digitalWrite( green_led, HIGH );
+				delay(300);
+				digitalWrite( green_led, LOW );
+				delay(300);
+				digitalWrite( green_led, HIGH );
+				delay(300);
+				digitalWrite( green_led, LOW );
+
+				delay(1000); // pause 1 second between lights for each value 
+   			}
+   			else if(value < 200)
+   			{
+      				//turn green on steady for 500 msec;
+			
+				digitalWrite( green_led, HIGH );
+				delay(500);
+				digitalWrite( green_led, LOW );
+				delay(1000); 
+			}
+
+   			else if(value < 500)
+   			{
+				//turn blue on steady for 500 msec;
+				digitalWrite( blue_led, HIGH );
+				delay(500);
+				digitalWrite( blue_led, LOW );
+				delay(1000);
+			}
+   
+   			else 
+   			{
+      		 
+      		    // if none of the three values cause green or blue to be lit, turn on red for one full second
+				digitalWrite( red_led, HIGH );
+				delay(1000);
+				digitalWrite( red_led, LOW );
+				delay(1000);      
+      			}
+		}
+}
+
+/**********************************************************************
+
+   Function: main
+
+   Author: L Jones
+
+   Description: Main program function. Program opens and reads star_data.txt, which contains data of known star classes. 
+		If file doesn’t open or is empty, a message will be displayed and program will exit. 
+		Read star data into a two dimensional array. Takes 10 readings of the light sensor with a delay between them. 
+		Compare the reading data with the star data, one star at a time. For each star, determine the chi-squared 
+		value (described below), storing the results to a one dimensional array. 
+		Iterate through results array, looking for the three smallest values. 
+		Use red, green, and blue LEDs to indicate the quality of the matches with a series of actions (detailed below). 
+
+   Parameters: none
+
+   Returns:  0     successful completion
+            -1    file error
+	    rows  number of rows read into array
+	    value sum of chi-squared value (difference between known and observed star arrays)
+
+   Calls:   read_data
+            read_sensor
+            compare_stars
+	    find_closest
+	    display_results
+
+***********************************************************************/
+int main( )
+{
+	//Arrays:
+	int star_class[50][10];
+	int star_reading[10];
+	double compare_results[50];
+	int three_best_matches[3];
+	
+	//PCduino:
+	int dist_sensor = 4; //A4 - analog device
+	int distance;
+	int red_led = 10; //D 10, 11, 12 digital devices
+	int green_led = 11;
+	int blue_led = 12;
+	int red_led_status;
+	int green_led_status;
+	int blue_led_status;
+
+	//PCduino analog and digital commands for light sensor and LEDs
+	init( ); 
+
+	pinMode( dist_sensor, INPUT );
+	pinMode( red_led, OUTPUT );
+	pinMode( green_led, OUTPUT );
+	pinMode( blue_led, OUTPUT );
+	
+	//reading from file:
+	FILE* inFile = NULL; // File pointer
+   	
+   	//rest of declarations
+   	int value = 0;
+   	int num_rows;  // number of rows read 
+   	int i, j;
+   	
+	
+	// open and try to read file. if null, return message and close
+	
+	inFile = fopen("star_data.txt", "r");
+	if (inFile == NULL) 
+	{
+      		printf("Could not open file star_data.txt.\n");
+      		return -1;
+   	}
+    
+    	// read contents of input file into array
+	
+	num_rows = read_file(inFile, star_class, 500);
+	printf("%d", num_rows); // remove after
+	
+	// if the read_file function returned 0 rows, then print a File Empty message and exit the program. 
+	
+	if(num_rows == 0)
+	{
+		printf("File empty");
+		return -1;
+	}
+            
+       read_sensor( dist_sensor, star_reading, num_rows );
+	
+       compare_stars( star_reading, star_class, compare_results,  num_rows );
+
+	find_closest( compare_results, three_best_matches, num_rows );
+	
+	void display_results( compare_results, three_best_matches, red_led, green_led, blue_led  ); // do I need num_rows here and in fx header?
+	
+	return 0;
+}
+
