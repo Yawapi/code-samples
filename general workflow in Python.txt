@@ -1,0 +1,370 @@
+A general analytic work flow in Python using scikit-learn, scikit-image, numpy, and pandas
+
+Import libraries
+#This work flow uses general libraries. Specialized frameworks such as Keras and TensorFlow use framework-specific language that will be covered elsewhere. Scikit-learn assumes you have NumPy and SciPy installed. 
+Pandas is used for data frames. scikit-learn's built-in datasets are of type Bunch, which are dictionary-like objects. 
+
+#Import scikit-learn 
+Import sklearn
+
+#Import numpy as np
+import numpy as np
+
+#Import pandas as pd
+import pandas as pd
+
+# Import pyplot from matplotlib as plt
+import matplotlib.pyplot as plt
+
+#Import seaborn as sns
+import seaborn as sns
+
+Import Data
+#The command needed to import your data will depend on the data structure. Below are various commands you might use for various datasets. 
+
+# Read a csv file into a DataFrame (most commonly)
+df = pd.read_csv('file_name.csv')
+
+#Other common formats
+df = pd.read_table('file_name.ext')
+df = pd.read_json('file_name.ext')
+df = pd.read_html('file_name.ext')
+df = pd.read_hdf('file_name.ext')
+df = pd.read_sql('file_name.ext')
+
+___________________________________________________________________________________________________________________________________
+
+Explore Data
+#The first step to take is to explore your dataset. Use pandas' methods to explore a dataframe.
+
+# Return the first five rows of a dataframe by default (can change the number of rows returned in the parentheses). 
+pd.DataFrame.head()
+
+# Return the last five rows of a dataframe by default (can change the number of rows returned in the parentheses). 
+pd.DataFrame.tail()
+
+#Information about dtype and columns, non-null values and memory usage.
+pd.DataFrame.info()
+
+#Returns descriptive statistics (summary of central tendency, dispersion and shape of distribution), excluding NaN values. 
+pd.DataFrame.describe()
+
+# Returns number of data points in a dataset: 
+n_points = len(data_frame)
+
+#Value counts - create a series out of a column and return the counts of each category:
+Variable_name = data_df['Column']
+variable_counts = variable_name.value_counts()
+
+#Explore categorical features using boxplots (useful for visualizing categorical features).
+# Create a boxplot of life expectancy per region
+df.boxplot('X', 'Y', rot=60)
+
+# Calculate percentiles by specifying an array of percentiles
+percentiles = np.array([25, 50, 75]) 
+
+# Compute percentiles
+pctiles = np.percentile(df['column'], [25, 50, 75])
+
+# Array of differences from mean
+differences = data - np.mean(data)
+
+# Square the differences and compute the mean square difference and variance
+sq_diff = differences**2
+variance_explicit = np.mean(sq_diff)
+
+# Calculate variance and return the square root of the variance and the standard deviation
+variance_np = np.var(data)
+print(np.sqrt(variance_np))
+print(np.std(data))
+
+# Algorithms such as regression, nearest neighbors, principal component analysis, and neural networks converge faster (often with better results) when features are scaled, standardized, or normalized. 
+#X_train and X_test can be numpy ndarrays or pandas DataFrames. There are standard, minmax and robust methods available. 
+
+# Import and instantiate MinMaxScaler
+from sklearn.preprocessing import MinMaxScaler
+MM_scaler = MinMaxScaler()
+
+# Fit MM_scaler to the data and transform data using the fitted scaler
+MM_scaler.fit(numeric_df[['Column']])
+numeric_df['Column_MM'] = MM_scaler.transform(numeric_df[['Column']])
+
+Clean Data
+#Converting values to NaN (not a number). These (?) denote missing values (different datasets encode missing values in different ways, such as '9999', 0, ?, and so on). 
+#Use pandas methods such as .dropna() and .fillna(), as well as scikit-learn's Imputation transformer Imputer() to clean data.
+
+#convert the '?'s to NaNs, and then drop the rows that contain them from the DataFrame.
+df[df == '?'] = np.nan
+
+# Print the number of NaNs
+print(df.isnull().sum())
+
+# Print shape of original DataFrame
+print("Shape of Original DataFrame: {}".format(df.shape))
+
+# Drop missing values and print shape of new DataFrame
+df = df.dropna()
+print("Shape of DataFrame After Dropping Missing Values: {}".format(df.shape))
+
+#Datasets can be reshaped where the format changes but content is preserved. To reshape X and y: 
+y = y.reshape(-1, 1)
+X = X.reshape(-1, 1)
+
+# Print the dimensions of X and y after reshaping
+print("Dimensions of y after reshaping: {}".format(y.shape))
+print("Dimensions of X after reshaping: {}".format(X.shape))
+
+#name.describe() - can only be used on numeric columns. use name.value_counts() on categorical data. 
+# set dropna = Set to True to exclude missing data
+___________________________________________________________________________________________________________________________________________________________
+
+General methods
+
+Regression
+#Create a scatter plot then fit a linear regression and predict using just one feature. 
+#Overlay the predicted values on the scatter plot to generate a regression line and then compute r2.
+
+# Import
+from sklearn.linear_model import LinearRegression
+from sklearn.model_selection import cross_val_score
+
+# Create the regressor and prediction space and fit the model.
+reg = LinearRegression()
+prediction_space = np.linspace(min(X_value), max(X_value)).reshape(-1,1)
+reg.fit(X_value, y)
+
+# Compute predictions, print r2 and plot regression line:
+y_pred = reg.predict(prediction_space)
+print(reg.score(X_value, y))
+plt.plot(prediction_space, y_pred, color='black', linewidth=3)
+plt.show()
+# Cross-validation is used to evaluate a model. By default, scikit-learn's cross_val_score() function uses r2 as the metric of choice for regression. The function will return n scores, where n is the number of folds. 
+# Compute and print five-fold cross-validation scores:
+cv_scores = cross_val_score(reg, X,y, cv=5)
+print(cv_scores)
+_____________________________________________________________________________________________________________________________________________________
+PCA
+#Use principal component analysis (PCA) for dimensionality reduction, retaining only the most important components.
+# Imports
+from sklearn.decomposition import PCA
+from sklearn.preprocessing import StandardScaler
+from sklearn.pipeline import make_pipeline
+
+# Create scaler and PCA 
+scaler = StandardScaler()
+pca = PCA(n_components=2)
+
+# Create pipeline and fit to samples
+pipeline = make_pipeline(scaler, pca)
+pipeline.fit(samples)
+
+# Transform the scaled samples and print the shape of the features
+pca_features = pca.transform(scaled_samples)
+print(pca_features.shape)
+
+# Plot variances
+features = range(pca.n_components_)
+plt.bar(features, pca.explained_variance_)
+plt.xlabel('PCA feature')
+plt.ylabel('variance')
+plt.xticks(features)
+plt.show()
+____________________________________________________________________________________________________________________________________________________________
+K-means algorithm
+#K-means is an unsupervised clustering algorithm with the goal to partition n observations into k clusters. 
+#Each data point is considered to belong to the cluster with the nearest mean, based on cluster centroids (centers). A scatter plot can be used to visually inspect a dataset for clustering, including number of clusters.
+
+#Imports
+from sklearn.pipeline import make_pipeline
+from sklearn.preprocessing import StandardScaler
+from sklearn.cluster import KMeans
+
+# Create a scatterplot to visually assess a reasonable number of clusters for your model
+# Generate a scatter plot of 'x' and 'y' using blue circles
+plt.scatter(dataset['x'], dataset['y'], label='data', color='blue', marker='o')
+
+# Create a KMeans model with 5 clusters (n_clusters from visually inspecting the scatterplot)
+model = KMeans(n_clusters=5)
+
+# Use fit_predict to fit model and obtain cluster labels: labels
+labels = model.fit_predict(samples)
+
+# Create also create a pipeline if running multiple scenarios with scaler, KMeans instance and pipeline:
+scaler = StandardScaler()
+kmeans = KMeans(n_clusters=5)
+pipeline = make_pipeline(scaler, kmeans)
+
+# Make a pipeline chaining normalizer and kmeans: 
+pipeline = make_pipeline(normalizer, kmeans)
+
+# Fit pipeline to dataset
+pipeline.fit(dataset)
+
+# Predict the cluster labels and create a DataFrame aligning labels and data column:
+labels = pipeline.predict(dataset)
+df = pd.DataFrame({'labels': labels, 'column': column})
+
+# Display df sorted by cluster label
+print(df.sort_values('labels'))
+
+#Compare the clusters using a cross-tabulation.
+# Create crosstabulation
+ct = pd.crosstab(df['labels'], df['column'])
+
+#Inspect cluster labels for covariance. 
+c_matrix = np.cov(df,bias=True)
+sns.heatmap(c_matrix, annot=True, fmt='g')
+plt.show()
+____________________________________________________________________________________________________________________________________________________
+
+K-nearest neighbors
+# KNN is used for classification and regression. Input consists of the k closest training examples in data set; output is a class membership where an object belongs to the class that most of its neighbors belong to. 
+#Create arrays for features and target variable, split them into training and test sets, 
+#Fit a k-NN classifier to the training data, and assess accuracy. 
+
+# Import modules
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import classification_report, confusion_matrix
+
+# Create feature and target arrays, then split into training and test sets
+# The stratify parameter splits samples so that the proportion of values in the sample produced will be the same as the proportion of values provided.
+X = df.data
+y = df.target
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.4, random_state=42, stratify=y)
+
+# Create a k-NN classifier with 9 neighbors and fit to training data:
+knn = KNeighborsClassifier(n_neighbors=9)
+knn.fit(X_train,y_train)
+
+# Print the accuracy:
+print(knn.score(X_test, y_test))
+
+# Predict the labels of the test data:
+y_pred = knn.predict(X_test)
+
+# Generate the confusion matrix and classification report
+print(confusion_matrix(y_test, y_pred))
+print(classification_report(y_test, y_pred))
+_______________________________________________________________________________________________________________________________________________
+ Basic image processing with scikit image
+
+# Import modules
+from skimage import data, color
+
+# Load image and convert to grayscale
+Image_name = data.image()
+gray_scaled_image = color.rgb2gray(image) 
+
+# Slice for red channel and plot red histogram:
+red_channel = image[:, :, 0]
+plt.hist(red_channel.ravel(), bins=256)
+plt.title('Red Histogram')
+plt.show()
+
+# Thresholding is used to segment a grayscale image to create a binary image. There are also global and local thresholding functions, and a try all function.
+
+# Import otsu threshold function
+from skimage.filters import threshold_otsu
+
+# Make image grayscale and find optimal threshold value
+image_gray = rgb2gray(image)
+thresh = threshold_otsu(image_gray)
+
+# Apply thresholding to image and display
+binary = image_gray > thresh
+show_image(binary, 'Binary image')
+
+# Image segmentation using slic (Simple Linear Iterative Clustering) to create superpixels
+
+# Import modules
+from skimage.segmentation import slic
+from skimage.color import label2rgb
+
+# Segment image with 200 regions and compare to original
+segments = slic(image, n_segments= 200)
+segmented_image = label2rgb(segments, image, kind='avg')
+
+#Use various filters
+
+# Import modules and functions
+from skimage import color
+from skimage.filters import sobel
+
+# Apply sobel edge detection filter to grayscale image
+image_gray = color.rgb2gray(image)
+edge_sobel = sobel(image_gray)
+
+# Import Gaussian filter and apply
+from skimage.filters import gaussian
+gaussian_image = gaussian(image, multichannel=True)
+
+#Adding or removing noise from an image
+
+# Import  module and function
+from skimage.util import random_noise
+from skimage.restoration import denoise_tv_chambolle
+OR 
+from skimage.restoration import denoise_bilateral
+
+# Adding noise to an image
+noisy_image = random_noise(plain_image)
+
+# Apply total variation filter denoising
+denoised_image = denoise_tv_chambolle(noisy_image, 
+                                      multichannel=True)
+OR
+# Apply bilateral filter denoising
+denoised_image = denoise_bilateral(noisy_image, 
+                                   multichannel=True)
+
+# Edge detection with Canny
+# Import canny edge detector 
+from skimage.feature import canny
+
+# Convert image to grayscale and apply edge detector
+image = color.rgb2gray(image)
+canny_edges = canny(image)
+
+# Apply canny edge detector with a sigma of 1.2
+edges_1_2 = canny(image, sigma=1.2)
+
+# Harris corner detector
+# Import  functions and module
+from skimage.feature import corner_harris, corner_peaks
+
+# Convert image from RGB-3 to grayscale and apply detector
+building_image_gray = color.rgb2gray(building_image)
+measure_image = corner_harris(building_image_gray)
+
+# Find  peaks of  corners
+coords = corner_peaks(measure_image, min_distance=2)
+
+# Find  peaks with a min distance (14 pixels in this instance)
+peaks_14 = corner_peaks(measure_image, min_distance=14)
+print("With a min_distance set to 14 pixels, we detect a total", len(peaks_14), "corners in  image.")
+________________________________________________________________________________________________________________________________________________________________
+
+Visualizations
+
+#scikit-learn provides an 'images' key (a 2D array corresponding to each sample) in addition to the 'data' and 'target' keys, which is useful for visualizations. 
+# Set default Seaborn style and plot a histogram (default is 10 bins, but this can be changed using the square root rule if desired) where number of bins is the square root of the number of samples. 
+sns.set()
+_ = plt.hist(data_frame)
+
+# Label axes
+plt.xlabel('x_label_name')
+plt.ylabel('y_label_name')
+
+# Show histogram
+plt.show()
+
+#Simple linear regression using Seaborn
+# Plot in blue a linear regression of order 1 between 'x' and 'y'
+sns.regplot(x='x_values', y='y_values', data=dataset_name, scatter=None, color='blue', label='order 1')
+# Plot in red a linear regression of order 2 between 'x' and 'y'
+sns.regplot(x='x_values', y='y_values', data=dataset_name, scatter=None, color='red', label='order 2')
+# Add a legend and display the plot
+plt.legend(loc='upper right')
+plt.show()
+
