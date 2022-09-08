@@ -8,19 +8,16 @@
 
    Language: C
 
-   Background: A variable star is a type of star whose brightness, as seen from Earth, varies over time.  A regular variable star's brightness varies according to a predictable pattern.   
-                                These stars can be grouped into classifications based on the pattern of their variability.  In this program, we will be using a light sensor 
-                                to simulate recording one star's light output over a period of time.  Then, we will compare that star's light output 
-                                data to data representing known classes of regular variable star light patterns, to determine if the star belongs to any of the known classes.
+   Background: A variable star is a type of star whose brightness, as seen from Earth, varies over time.  A regular variable star's brightness varies according to a predictable pattern. These stars can be grouped into classifications based on the pattern of their variability. This program uses a light sensor to simulate recording one star's light output over a period of time.  Then, we will compare that star's light output data to data representing known classes of regular variable star light patterns, to determine if the star belongs to any of the known classes.
 
    Description: Program opens and reads star_data.txt, which contains data of known star classes. 
 				If file doesn’t open or is empty, a message will be displayed and program will exit. 
 				Read star data into a two dimensional array. 
 				Takes 10 readings of the light sensor with a delay between them. 
 				Compare the reading data with the star data, one star at a time. 
-				For each star, determine the chi-squared value (described below), storing the results to a one dimensional array.
+				For each star, determine the chi-squared value (described below), storing the results to a one dimensional                                 array.
 				Iterate through results array, looking for the three smallest values. 
-				Use red, green, and blue LEDs (on PCduino) to indicate the quality of the matches with a series of actions (detailed below). 
+				Use red, green, and blue LEDs (on PCduino) to indicate the quality of the matches with a series of actions                                 (detailed below). 
 
    Input :  file "star_data.txt" must be available (in the same folder as the program).
 
@@ -376,7 +373,7 @@ void display_results( double compare_results[], int three_best_matches[], int re
 
    Parameters: none
 
-   Returns:  0     successful completion
+   Returns:  0    successful completion
             -1    file error
 	    rows  number of rows read into array
 	    value sum of chi-squared value (difference between known and observed star arrays)
